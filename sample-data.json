@@ -1,0 +1,35 @@
+
+{
+  "notice": "Fictional demonstration data only",
+  "demand": [
+    {"time": "06:00", "passengers": 450},
+    {"time": "09:00", "passengers": 720},
+    {"time": "12:00", "passengers": 400},
+    {"time": "15:00", "passengers": 520},
+    {"time": "18:00", "passengers": 900},
+    {"time": "21:00", "passengers": 610}
+  ],
+  "trains": [
+    {
+      "id": "TR101",
+      "route": "Chennai-Bengaluru",
+      "departure": "06:00",
+      "arrival": "11:00",
+      "status": "Available"
+    },
+    {
+      "id": "TR102",
+      "route": "Chennai-Coimbatore",
+      "departure": "07:30",
+      "arrival": "14:00",
+      "status": "Delayed"
+    },
+    {
+      "id": "TR103",
+      "route": "Chennai-Madurai",
+      "departure": "08:00",
+      "arrival": "15:00",
+      "status": "Available"
+    }
+  ]
+}
