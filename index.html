@@ -1,0 +1,222 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Train Scheduling Optimizer</title>
+<style>
+:root{--navy:#10233f;--blue:#2457d6;--teal:#14b8a6;--bg:#f3f6fb;--muted:#64748b}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:#18263b}
+header{background:var(--navy);color:white;padding:22px 5%;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:22px;margin:0}
+header p{margin:6px 0 0;color:#cbd5e1;font-size:13px}
+.tag{background:#164e63;padding:8px 12px;border-radius:20px;font-size:12px}
+.layout{display:grid;grid-template-columns:210px 1fr;min-height:calc(100vh - 85px)}
+nav{background:white;padding:20px 12px;border-right:1px solid #e2e8f0}
+nav button{display:block;width:100%;text-align:left;border:0;background:white;padding:13px;border-radius:8px;margin-bottom:5px;cursor:pointer;color:#334155}
+nav button.active,nav button:hover{background:#eaf0ff;color:var(--blue)}
+main{padding:25px;min-width:0}
+h2{margin-top:0}
+.sub{color:var(--muted);font-size:14px;line-height:1.5}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px;margin:20px 0}
+.card,.panel{background:white;border:1px solid #e5eaf1;border-radius:13px;padding:18px}
+.card small{color:var(--muted)}
+.number{font-size:28px;font-weight:700;margin:12px 0 5px}
+.green{color:#0f987f}.red{color:#dc4d4d}
+.columns{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-bottom:16px}
+.panel h3{margin-top:0;font-size:16px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:12px 8px;text-align:left;border-bottom:1px solid #edf0f5}
+th{color:var(--muted);font-weight:600}
+.tablewrap{overflow-x:auto}
+.status{padding:5px 8px;border-radius:20px;background:#e1f7ed;color:#087e59;font-size:11px;white-space:nowrap}
+.status.late{background:#fee2e2;color:#b91c1c}
+.status.maint{background:#fff1cf;color:#8a5a00}
+button,.btn{font:inherit}
+.primary{background:var(--blue);color:white;border:0;border-radius:8px;padding:11px 15px;cursor:pointer}
+.secondary{background:white;color:var(--blue);border:1px solid #cbd5e1;border-radius:8px;padding:10px;cursor:pointer}
+input,select{padding:10px;border:1px solid #cbd5e1;border-radius:7px;max-width:100%}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:15px}
+.bar{height:9px;background:#e2e8f0;border-radius:8px;overflow:hidden;margin:8px 0 15px}
+.bar span{display:block;height:100%;background:var(--teal)}
+.alert{padding:12px;background:#fff7ed;border-radius:8px;margin:10px 0;font-size:13px}
+.notice{font-size:12px;color:#64748b;background:#eef2ff;padding:12px;border-radius:8px;margin-top:15px}
+.page{display:none}.page.active{display:block}
+footer{padding:18px;color:var(--muted);font-size:12px;text-align:center}
+@media(max-width:850px){.cards{grid-template-columns:repeat(2,1fr)}.columns{grid-template-columns:1fr}}
+@media(max-width:600px){.layout{grid-template-columns:1fr}nav{display:flex;overflow:auto;padding:8px}nav button{min-width:max-content;width:auto;margin:0 4px}main{padding:15px}.cards{gap:8px}.card{padding:12px}.number{font-size:23px}header{padding:18px}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>🚆 AI Train Scheduling Optimizer</h1>
+    <p>Intelligent railway operations dashboard</p>
+  </div>
+  <span class="tag">DEMO MODE · SAMPLE DATA</span>
+</header>
+
+<div class="layout">
+<nav>
+  <button class="active" data-page="dashboard">▦ Dashboard</button>
+  <button data-page="schedules">▤ Train Scheduling</button>
+  <button data-page="demand">⌁ Demand Forecast</button>
+  <button data-page="maintenance">⚙ Maintenance</button>
+  <button data-page="alerts">♧ Delay Alerts</button>
+</nav>
+
+<main>
+<section id="dashboard" class="page active">
+  <h2>Operations Overview</h2>
+  <p class="sub">Monitor fictional train operations and explore sample scheduling recommendations.</p>
+  <div class="cards">
+    <div class="card"><small>Total Trains</small><div class="number" id="total">12</div><small>Demo fleet</small></div>
+    <div class="card"><small>Available</small><div class="number green" id="available">9</div><small>Ready for allocation</small></div>
+    <div class="card"><small>Delayed</small><div class="number red" id="delayed">2</div><small>Sample alerts</small></div>
+    <div class="card"><small>Utilization</small><div class="number" id="util">75%</div><small>Illustrative estimate</small></div>
+  </div>
+  <div class="columns">
+    <div class="panel">
+      <h3>Passenger Demand by Time</h3>
+      <p class="sub">Illustrative passenger counts</p>
+      <div id="demandChart"></div>
+    </div>
+    <div class="panel">
+      <h3>Train Status</h3>
+      <p>Available <b id="avLabel">9</b></p><div class="bar"><span style="width:75%"></span></div>
+      <p>Delayed <b id="delayLabel">2</b></p><div class="bar"><span style="width:17%;background:#ef6464"></span></div>
+      <p>Maintenance <b id="maintLabel">1</b></p><div class="bar"><span style="width:8%;background:#eab308"></span></div>
+    </div>
+  </div>
+  <div class="panel">
+    <h3>Today's Sample Schedule</h3>
+    <div class="tablewrap"><table><thead><tr><th>Train</th><th>Route</th><th>Departure</th><th>Status</th></tr></thead><tbody id="recent"></tbody></table></div>
+    <p><button class="primary" onclick="showPage('schedules')">View All Trains</button></p>
+  </div>
+</section>
+
+<section id="schedules" class="page">
+  <h2>Train Scheduling</h2>
+  <p class="sub">Search, review, and add fictional train records.</p>
+  <div class="row">
+    <input id="search" placeholder="Search train or route" oninput="renderTrains()">
+    <button class="primary" onclick="optimize()">Optimize Schedule</button>
+    <button class="secondary" onclick="addTrain()">+ Add Train</button>
+  </div>
+  <div class="panel tablewrap">
+    <table><thead><tr><th>ID</th><th>Route</th><th>Departure</th><th>Arrival</th><th>Status</th><th>Action</th></tr></thead><tbody id="trainRows"></tbody></table>
+  </div>
+  <div id="optimization" class="notice">Optimization recommendations will appear here.</div>
+</section>
+
+<section id="demand" class="page">
+  <h2>Passenger Demand Forecast</h2>
+  <p class="sub">Fictional estimates to demonstrate demand visualization.</p>
+  <div class="panel"><h3>Estimated Passengers by Time</h3><div id="demandChart2"></div></div>
+  <div class="panel" style="margin-top:15px">
+    <h3>Route Demand</h3>
+    <p>Chennai – Bengaluru</p><div class="bar"><span style="width:85%"></span></div>
+    <p>Chennai – Coimbatore</p><div class="bar"><span style="width:65%"></span></div>
+    <p>Chennai – Madurai</p><div class="bar"><span style="width:48%"></span></div>
+  </div>
+</section>
+
+<section id="maintenance" class="page">
+  <h2>Maintenance Tracking</h2>
+  <p class="sub">Illustrative maintenance records. Verify all dates before real use.</p>
+  <div class="panel tablewrap"><table><thead><tr><th>Train</th><th>Last Service</th><th>Next Service</th><th>Status</th></tr></thead><tbody id="maintenanceRows"></tbody></table></div>
+</section>
+
+<section id="alerts" class="page">
+  <h2>Delay Alerts</h2>
+  <p class="sub">Sample alerts only—not live railway information.</p>
+  <div id="alertList"></div>
+</section>
+
+<footer>AI Train Scheduling Optimizer · Student prototype · Not for operational railway decisions</footer>
+</main>
+</div>
+
+<script>
+const trains = [
+{id:"TR101",route:"Chennai–Bengaluru",dep:"06:00",arr:"11:00",status:"Available",last:"2026-09-10",next:"2026-11-10"},
+{id:"TR102",route:"Chennai–Coimbatore",dep:"07:30",arr:"14:00",status:"Delayed",last:"2026-09-14",next:"2026-11-14"},
+{id:"TR103",route:"Chennai–Madurai",dep:"08:00",arr:"15:00",status:"Available",last:"2026-09-18",next:"2026-11-18"},
+{id:"TR104",route:"Chennai–Trichy",dep:"09:00",arr:"13:00",status:"Maintenance",last:"2026-10-01",next:"2026-10-28"},
+{id:"TR105",route:"Bengaluru–Mysuru",dep:"10:00",arr:"12:30",status:"Available",last:"2026-09-20",next:"2026-11-20"},
+{id:"TR106",route:"Chennai–Bengaluru",dep:"12:00",arr:"17:00",status:"Available",last:"2026-09-22",next:"2026-11-22"},
+{id:"TR107",route:"Chennai–Coimbatore",dep:"14:00",arr:"20:00",status:"Delayed",last:"2026-09-24",next:"2026-11-24"},
+{id:"TR108",route:"Chennai–Madurai",dep:"16:00",arr:"23:00",status:"Available",last:"2026-09-25",next:"2026-11-25"},
+{id:"TR109",route:"Chennai–Trichy",dep:"17:00",arr:"21:00",status:"Available",last:"2026-09-26",next:"2026-11-26"},
+{id:"TR110",route:"Bengaluru–Mysuru",dep:"18:00",arr:"20:30",status:"Available",last:"2026-09-27",next:"2026-11-27"},
+{id:"TR111",route:"Chennai–Bengaluru",dep:"19:00",arr:"00:00",status:"Available",last:"2026-09-28",next:"2026-11-28"},
+{id:"TR112",route:"Chennai–Madurai",dep:"21:00",arr:"04:00",status:"Available",last:"2026-09-29",next:"2026-11-29"}
+];
+const demand = [{time:"06:00",count:450},{time:"09:00",count:720},{time:"12:00",count:400},{time:"15:00",count:520},{time:"18:00",count:900},{time:"21:00",count:610}];
+const alerts = [
+{id:"TR102",text:"Sample delay of 20 minutes on Chennai–Coimbatore route.",reviewed:false},
+{id:"TR107",text:"Sample delay of 15 minutes on Chennai–Coimbatore route.",reviewed:false}
+];
+const $ = id => document.getElementById(id);
+function safe(value){return String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function statusTag(s){return `<span class="status ${s==="Delayed"?"late":s==="Maintenance"?"maint":""}">${safe(s)}</span>`}
+function renderStats(){
+ const av=trains.filter(t=>t.status==="Available").length;
+ const de=trains.filter(t=>t.status==="Delayed").length;
+ const ma=trains.filter(t=>t.status==="Maintenance").length;
+ $("total").textContent=trains.length;$("available").textContent=av;
+ $("delayed").textContent=de;$("util").textContent=Math.round(av/trains.length*100)+"%";
+ $("avLabel").textContent=av;$("delayLabel").textContent=de;$("maintLabel").textContent=ma;
+ document.querySelectorAll(".bar span").forEach((el,i)=>{
+   if(i<3)el.style.width=([av,de,ma][i]/trains.length*100)+"%";
+ });
+}
+function renderTrains(){
+ const q=($("search")?.value||"").toLowerCase();
+ const rows=trains.filter(t=>(t.id+" "+t.route).toLowerCase().includes(q));
+ $("trainRows").innerHTML=rows.map(t=>`<tr><td>${safe(t.id)}</td><td>${safe(t.route)}</td><td>${safe(t.dep)}</td><td>${safe(t.arr)}</td><td>${statusTag(t.status)}</td><td><button class="secondary" onclick="toggleStatus('${safe(t.id)}')">Change status</button></td></tr>`).join("");
+ $("recent").innerHTML=trains.slice(0,5).map(t=>`<tr><td>${safe(t.id)}</td><td>${safe(t.route)}</td><td>${safe(t.dep)}</td><td>${statusTag(t.status)}</td></tr>`).join("");
+ renderStats();
+}
+function toggleStatus(id){
+ const t=trains.find(t=>t.id===id);if(!t)return;
+ const options=["Available","Delayed","Maintenance"];
+ t.status=options[(options.indexOf(t.status)+1)%options.length];
+ renderTrains();renderMaintenance();
+}
+function addTrain(){
+ const id=prompt("Enter train ID (e.g. TR113):");if(!id)return;
+ if(trains.some(t=>t.id.toLowerCase()===id.trim().toLowerCase())){alert("That train ID already exists.");return;}
+ const route=prompt("Enter route:");if(!route)return;
+ trains.push({id:id.trim(),route:route.trim(),dep:"10:00",arr:"14:00",status:"Available",last:"Not recorded",next:"Not scheduled"});
+ renderTrains();renderMaintenance();alert("Demo train added.");
+}
+function optimize(){
+ const available=trains.filter(t=>t.status==="Available");
+ if(!available.length){$("optimization").textContent="No available trains in the current sample data.";return;}
+ const peak=demand.reduce((a,b)=>a.count>b.count?a:b);
+ $("optimization").innerHTML=`<b>Simulated recommendation</b><br>Peak sample demand: ${peak.time} (${peak.count} passengers). ${safe(available[0].id)} is marked available and could be reviewed for allocation to a high-demand route, subject to capacity, crew, timetable, track, and maintenance constraints. <br><br><b>Important:</b> This is a rule-based demonstration, not a validated AI model. It does not change the timetable automatically.`;
+}
+function renderMaintenance(){
+ $("maintenanceRows").innerHTML=trains.map(t=>`<tr><td>${safe(t.id)}</td><td>${safe(t.last)}</td><td>${safe(t.next)}</td><td>${statusTag(t.status)}</td></tr>`).join("");
+}
+function renderAlerts(){
+ $("alertList").innerHTML=alerts.map((a,i)=>`<div class="panel alert"><b>${safe(a.id)}</b><p>${safe(a.text)}</p>${a.reviewed?'<span class="status">Reviewed</span>':`<button class="secondary" onclick="reviewAlert(${i})">Mark reviewed</button>`}</div>`).join("")||"<p>No sample alerts.</p>";
+}
+function reviewAlert(i){alerts[i].reviewed=true;renderAlerts();}
+function drawChart(target){
+ const max=Math.max(...demand.map(d=>d.count));
+ const bars=demand.map(d=>`<div style="flex:1;text-align:center;font-size:11px"><div title="${d.count} passengers" style="height:${d.count/max*150}px;background:#14b8a6;border-radius:5px 5px 0 0;min-width:12px"></div><div style="margin-top:8px">${d.time}</div><b>${d.count}</b></div>`).join("");
+ $(target).innerHTML=`<div style="height:195px;display:flex;align-items:end;gap:10px;padding-top:15px">${bars}</div><p class="sub">Passenger counts are fictional demonstration values.</p>`;
+}
+function showPage(id){
+ document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===id));
+ document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===id));
+}
+document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
+renderTrains();renderMaintenance();renderAlerts();drawChart("demandChart");drawChart("demandChart2");
+</script>
+</body>
+</html>
